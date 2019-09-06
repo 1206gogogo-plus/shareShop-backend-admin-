@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="whut.dao.OrderDao">
+  <resultMap id="orderResultMap" type="whut.pojo.OrderMaster">
+    <id column="order_id" jdbcType="INTEGER" property="orderId" />
+    <result column="order_number" jdbcType="BIGINT" property="orderNumber" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="consignee_name" jdbcType="VARCHAR" property="consigneeName" />
+    <result column="consignee_phone" jdbcType="VARCHAR" property="consigneePhone" />
+    <result column="postal_code" jdbcType="INTEGER" property="postalCode" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="city" jdbcType="VARCHAR" property="city" />
+    <result column="first_addr" jdbcType="VARCHAR" property="firstAddr" />
+    <result column="second_addr" jdbcType="VARCHAR" property="secondAddr" />
+    <result column="payment_mode" jdbcType="TINYINT" property="paymentMode" />
+    <result column="order_moeny" jdbcType="DECIMAL" property="orderMoeny" />
+    <result column="discount_money" jdbcType="DECIMAL" property="discountMoney" />
+    <result column="shipping_money" jdbcType="DECIMAL" property="shippingMoney" />
+    <result column="payment_money" jdbcType="DECIMAL" property="paymentMoney" />
+    <result column="tax_money" jdbcType="DECIMAL" property="taxMoney" />
+    <result column="express_number" jdbcType="VARCHAR" property="expressNumber" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="pay_time" jdbcType="TIMESTAMP" property="payTime" />
+    <result column="shipping_time" jdbcType="TIMESTAMP" property="shippingTime" />
+    <result column="receive_time" jdbcType="TIMESTAMP" property="receiveTime" />
+    <result column="order_status" jdbcType="TINYINT" property="orderStatus" />
+    
+    <collection property="orderDetails" javaType="list" ofType="OrderDetail">
+    	<id column="order_detail_id" jdbcType="INTEGER" property="orderDetailId" />
+    	 <result column="product_id" jdbcType="INTEGER" property="productId" />
+    	 <result column="product_specs_id" jdbcType="INTEGER" property="productSpecsId" />
+    	<result column="product_name" jdbcType="VARCHAR" property="productName" />
+    	<result column="product_quantity" jdbcType="INTEGER" property="productQuantity" />
+    	<result column="product_price" jdbcType="DECIMAL" property="productPrice" />
+    	<result column="actual_paid_money" jdbcType="DECIMAL" property="actualPaidMoney" />
+    	<result column="status" jdbcType="TINYINT" property="status" />
+    </collection>
+  </resultMap>
+  
+ <resultMap id="OrderDetailResultMap" type="whut.pojo.OrderDetail">
+    <id column="order_detail_id" jdbcType="INTEGER" property="orderDetailId" />
+    <result column="order_id" jdbcType="INTEGER" property="orderId" />
+    <result column="product_id" jdbcType="INTEGER" property="productId" />
+    <result column="product_specs_id" jdbcType="INTEGER" property="productSpecsId" />
+    <result column="product_name" jdbcType="VARCHAR" property="productName" />
+    <result column="product_quantity" jdbcType="INTEGER" property="productQuantity" />
+    <result column="product_price" jdbcType="DECIMAL" property="productPrice" />
+    <result column="actual_paid_money" jdbcType="DECIMAL" property="actualPaidMoney" />
+    <result column="status" jdbcType="TINYINT" property="status" />
+  </resultMap>
+  
+  <resultMap id="ProductSaleResultMap" type="whut.pojo.ProductSales">
+    <result column="product_name" jdbcType="VARCHAR" property="productName" />
+    <result column="sales_volume" jdbcType="INTEGER" property="salesVolume" />
+    <result column="saleroom" jdbcType="DECIMAL" property="saleroom" />
+  </resultMap>
+  
+   <select id="getListByUser" parameterType="hashmap" resultMap="orderResultMap">
+       SELECT * FROM order_master om LEFT JOIN order_detail od on om.order_id = od.order_id
+       where user_id = #{id} 
+       limit #{pageindex},#{pagesize}
+   </select>
+   
+   <select id="getListByPro" parameterType="hashmap" resultMap="OrderDetailResultMap">
+       SELECT * FROM order_detail where product_specs_id = #{id}  limit #{pageindex},#{pagesize}
+   </select>
+   
+   <select id="getMasterByOrderId" parameterType="int" resultMap="orderResultMap">
+       SELECT * FROM order_master om LEFT JOIN order_detail od on om.order_id = od.order_id
+       where om.order_id = #{orderId} 
+   </select>
+   
+   
+  <select id="getDetailListByOrderId" parameterType="int" resultMap="OrderDetailResultMap">
+       SELECT * FROM order_detail where order_id = #{orderId}
+   </select>
+   
+   <select id="getOrderDetailByOrderDetailId" parameterType="int" resultMap="OrderDetailResultMap">
+       SELECT * FROM order_detail where order_detail_id = #{orderDetailId}
+   </select>
+   
+      
+   <select id="modifyOrder" parameterType="orderMaster">
+    	UPDATE order_master SET 
+    	consignee_name = #{consigneeName},consignee_phone = #{consigneePhone},postal_code = #{postalCode},
+    	state = #{state},city = #{city},first_addr = #{firstAddr},second_addr = #{secondAddr}
+        WHERE order_id = #{orderId}
+    </select>
+    
+   <select id="modifyPro" parameterType="orderDetail">
+    	
+    </select>
+    
+    <select id="modifyOrderStatus" parameterType="hashmap">
+    	UPDATE order_master SET 
+    	order_status = #{orderStatus}
+        WHERE order_id = #{orderId}
+    </select>
+    
+        
+   <select id="modifyProStatus" parameterType="hashmap">
+    	UPDATE order_detail SET 
+    	status = #{status}
+        WHERE order_detail_id = #{orderDetailId}
+    </select>
+    
+    <select id="modifyProStatusByOrderId" parameterType="hashmap">
+    	UPDATE order_detail SET 
+    	status = #{status}
+        WHERE order_id = #{orderId}
+    </select>
+     
+    <select id="getRecordByUser" parameterType="hashmap" resultType="SellerBill">
+        SELECT return_money as money, create_time as createTime, 'income' as type, status FROM return_record where user_id = #{id} and status = 1
+        <if test="timebe != null and timeen != null">
+      		and date_format(create_time,'%Y%m%d') BETWEEN #{timebe} AND DATE_ADD(#{timeen},INTERVAL 1 DAY)
+    	</if>
+		union
+		SELECT payment_money as money , pay_time as createTime ,'expend' as type, order_status as status FROM order_master where user_id = #{id} order_status = 5
+		<if test="timebe != null and timeen != null"> 
+      		and date_format(pay_time,'%Y%m%d') BETWEEN #{timebe} AND DATE_ADD(#{timeen},INTERVAL 1 DAY)
+    	</if>
+		ORDER BY createTime
+		limit #{pageindex},#{pagesize}
+   </select>
+    
+   <select id="getCountADay" parameterType="string" resultType="java.lang.Integer">
+        SELECT count(*) from order_master where date_format(pay_time,'%Y-%m-%d') =#{day}
+   </select>
+   
+   <select id="getAmountADay" parameterType="string" resultType="java.lang.Double">
+        SELECT sum(payment_money) from order_master where date_format(pay_time,'%Y-%m-%d') =#{day}
+   </select>
+   
+   <select id="getCountAMonth" parameterType="string" resultType="java.lang.Integer">
+        SELECT count(*) from order_master where date_format(pay_time,'%Y-%m') =#{month}
+   </select>
+   
+   <select id="getAmountAMonth" parameterType="string" resultType="java.lang.Double">
+        SELECT sum(payment_money) from order_master where date_format(pay_time,'%Y-%m') =#{month}
+   </select>
+   
+   <select id="getAverageCostADay" parameterType="string" resultType="java.lang.Double">
+       select sum(tc.cost) from
+		(select od.product_quantity * ps.average_cost as cost
+		 FROM order_detail od LEFT JOIN product_specs ps ON od.product_specs_id = ps.product_specs_id 
+		 where od.order_id IN (SELECT order_id from order_master WHERE date_format(pay_time,'%Y-%m-%d') = #{day}))tc
+   </select>
+   
+   <select id="getAverageCostAMonth" parameterType="string" resultType="java.lang.Double">
+       select sum(tc.cost) from
+		(select od.product_quantity * ps.average_cost as cost
+		 FROM order_detail od LEFT JOIN product_specs ps ON od.product_specs_id = ps.product_specs_id 
+		 where od.order_id IN (SELECT order_id from order_master WHERE date_format(pay_time,'%Y-%m') =#{month}))tc
+   </select>
+   
+   <select id="getCountAMonthAPro" parameterType="hashmap" resultType="java.lang.Integer">
+        select sum(od.product_quantity) from order_detail od
+		LEFT JOIN order_master om ON od.order_id = om.order_id 
+		where od.product_id = #{proId} and date_format(om.pay_time,'%Y-%m') = #{date}
+   </select>
+   
+   <select id="getAverageCostAMonthAPro" parameterType="hashmap" resultType="java.lang.Double">
+        select sum(tc.cost) from
+		(select od.product_quantity * ps.average_cost as cost
+		 FROM order_detail od LEFT JOIN product_specs ps ON od.product_specs_id = ps.product_specs_id 
+		 where od.product_id = #{proId} and  od.order_id IN (SELECT order_id from order_master 
+		 WHERE date_format(pay_time,'%Y-%m') = #{date})) tc
+   </select>
+   
+   <select id="getAmountAMonthAPro" parameterType="hashmap" resultType="java.lang.Double">
+        select sum(od.product_price) from order_detail od
+		LEFT JOIN order_master om ON od.order_id = om.order_id 
+		where od.product_id = #{proId} and date_format(om.pay_time,'%Y-%m') = #{date}
+   </select>
+   
+   <select id="getCountADayAPro" parameterType="hashmap" resultType="java.lang.Integer">
+        select sum(od.product_quantity) from order_detail od
+		LEFT JOIN order_master om ON od.order_id = om.order_id 
+		where od.product_id = #{proId} and date_format(om.pay_time,'%Y-%m-%d') = #{date}
+   </select>
+   
+   <select id="getAverageCostADayAPro" parameterType="hashmap" resultType="java.lang.Double">
+        select sum(tc.cost) from
+		(select od.product_quantity * ps.average_cost as cost
+		 FROM order_detail od LEFT JOIN product_specs ps ON od.product_specs_id = ps.product_specs_id 
+		 where od.product_id = #{proId} and  od.order_id IN (SELECT order_id from order_master 
+		 WHERE date_format(pay_time,'%Y-%m-%d') = #{date})) tc
+   </select>
+   
+   <select id="getAmountADayAPro" parameterType="hashmap" resultType="java.lang.Double">
+        select sum(od.product_price) from order_detail od
+		LEFT JOIN order_master om ON od.order_id = om.order_id 
+		where od.product_id = #{proId} and date_format(om.pay_time,'%Y-%m-%d') = #{date}
+   </select>
+   
+   <select id="getCountAMonthForClass" parameterType="hashmap" resultType="java.lang.Integer">
+        select sum(od.product_quantity) from order_detail od
+		LEFT JOIN order_master om ON od.order_id = om.order_id 
+		where date_format(om.pay_time,'%Y-%m') = #{date}
+		and od.product_id in (select product_id from product_info where one_category_id = #{cateId} or two_category_id = #{cateId} or three_category_id = #{cateId})
+   </select>
+   
+   <select id="getAverageCostAMonthForClass" parameterType="hashmap" resultType="java.lang.Double">
+        select sum(tc.cost) from
+		(select od.product_quantity * ps.average_cost as cost
+		 FROM order_detail od LEFT JOIN product_specs ps ON od.product_specs_id = ps.product_specs_id 
+		 where od.product_id in (select product_id from product_info where one_category_id = #{cateId} or two_category_id = #{cateId} or three_category_id = #{cateId})
+		 and  od.order_id IN (SELECT order_id from order_master 
+		 WHERE date_format(pay_time,'%Y-%m') = #{date})) tc
+   </select>
+   
+   <select id="getAmountAMonthForClass" parameterType="hashmap" resultType="java.lang.Double">
+        select sum(od.product_price) from order_detail od
+		LEFT JOIN order_master om ON od.order_id = om.order_id 
+		where od.product_id in (select product_id from product_info where one_category_id = #{cateId} or two_category_id = #{cateId} or three_category_id = #{cateId}) 
+		and date_format(om.pay_time,'%Y-%m') = #{date}
+   </select>
+   
+   <select id="getListSearch" parameterType="hashmap" resultMap="orderResultMap">
+       SELECT * FROM order_master om LEFT JOIN order_detail od on om.order_id = od.order_id
+       where  1 = 1
+    	<if test="id != null">
+      		and om.user_id = #{id}
+    	</if>
+    	<if test="orderNumber != null">
+      		and om.order_number = #{orderNumber} 
+    	</if>
+    	<if test="consignee != null">
+      		and om.consignee_name = #{consignee} 
+    	</if>
+    	<if test="status != null">
+      		and om.order_status = #{status}
+    	</if>
+    	<if test="timeBe != null and timeEn != null">
+      		and date_format(om.create_time,'%Y-%m-%d') BETWEEN #{timeBe} AND DATE_ADD(#{timeEn},INTERVAL 1 DAY)
+    	</if>
+       limit #{pageindex},#{pagesize}
+   </select>
+   
+    <select id="getCountClassForOneGood" parameterType="hashmap" resultMap="ProductSaleResultMap">
+      	SELECT od.product_id,od.product_name,sum(od.product_quantity) sales_volume,sum(od.product_quantity * od.product_price) saleroom FROM order_detail od
+		LEFT JOIN order_master om on om.order_id = od.order_id
+		WHERE 1 = 1
+		<if test="cateId != 0">
+			and od.product_id in (SELECT product_id FROM product_info WHERE one_category_id = #{cateId} or two_category_id = #{cateId} or three_category_id = #{cateId})
+		</if>
+		and date_format(om.pay_time,'%Y-%m-%d') BETWEEN #{timeBe} AND DATE_ADD(#{timeEn},INTERVAL 1 DAY)
+		GROUP BY od.product_id,od.product_name
+       	limit #{pageindex},#{pagesize}
+   </select>
+
+</mapper>

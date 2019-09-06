@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="whut.dao.ProCommentDao">
+  <resultMap id="BaseResultMap" type="whut.pojo.ProductComment">
+    <id column="comment_id" jdbcType="INTEGER" property="commentId" />
+    <result column="product_id" jdbcType="INTEGER" property="productId" />
+    <result column="order_detail_id" jdbcType="INTEGER" property="orderDetailId" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="reply" jdbcType="VARCHAR" property="reply"/>
+    <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="second_content" jdbcType="VARCHAR" property="secondContent" />
+    <result column="grade" jdbcType="TINYINT" property="grade" />
+    <result column="comment_time" jdbcType="TIMESTAMP" property="commentTime" />
+    <result column="audit_status" jdbcType="TINYINT" property="auditStatus" />
+    <result column="username" jdbcType="VARCHAR" property="username" />
+    <result column="product_name" jdbcType="VARCHAR" property="productName" />
+    <result column="specs" jdbcType="VARCHAR" property="productSpecs" />
+  </resultMap>
+  
+  <sql id="comment">
+        SELECT pc.comment_id,pc.product_id,pc.order_detail_id,pc.user_id,pc.reply,pc.content,pc.second_content,pc.grade,pc.comment_time,pc.audit_status,ul.username,pi.product_name,op.specs
+		FROM product_comment pc 
+		LEFT JOIN user_login ul ON pc.user_id = ul.user_id
+		LEFT JOIN product_info pi ON pc.product_id = pi.product_id 
+		LEFT JOIN (SELECT od.order_detail_id,ps.specs from order_detail od LEFT JOIN product_specs ps ON od.product_specs_id = ps.product_specs_id) op on pc.order_detail_id = op.order_detail_id 
+  </sql>
+  
+  <select id="getListByProduct" parameterType="hashmap" resultMap="BaseResultMap">
+        <include refid="comment"/>
+        where product_id = #{productId} and audit_status = 1
+        limit #{pageindex},#{pagesize}
+   </select>
+   
+    <select id="getListByUser" parameterType="hashmap" resultMap="BaseResultMap">
+        <include refid="comment"/>
+        where user_id = #{userId} 
+        limit #{pageindex},#{pagesize}
+   </select>
+   
+   <select id="add" parameterType="ProductInfo">
+    	INSERT INTO product_comment
+    	(product_id,order_detail_id,user_id,reply,content,grade,comment_time,audit_status)      
+        VALUES
+    	(#{productId},#{orderDetailId},#{userId},#{reply},#{content},#{grade},now(),1)
+    </select>
+    
+   <select id="delete" parameterType="String">
+    	UPDATE product_comment SET 
+    	audit_status = 0
+        WHERE comment_id = #{commentId}
+    </select>
+    
+    <select id="addAgain" parameterType="hashmap">
+    	UPDATE product_comment SET 
+    	second_content = #{secondContent}
+        WHERE comment_id = #{commentId}
+    </select>
+
+ 	<select id="getCommentById" parameterType="String" resultMap="BaseResultMap">
+        <include refid="comment"/>
+        where comment_id = #{id}
+   </select>
+   
+   
+ 	<select id="getListByCondition" parameterType="hashmap" resultMap="BaseResultMap">
+        <include refid="comment"/>
+        where 1 = 1
+        <if test="proName != null">
+      		and product_id in (select product_id from product_info where product_name = #{proName})
+    	</if>
+    	<if test="star1 != null and star2 != null">
+      		and grade BETWEEN #{star1} AND #{star1}
+    	</if>
+    	 <if test="spu != null">
+      		and product_id in (select product_id from product_info where spu = #{spu})
+    	</if>
+    	<if test="userName != null">
+      		and user_id in (select user_id from user_login where username = #{userName})
+    	</if>
+    	limit #{pageindex},#{pagesize} 
+   </select>
+   
+   <select id="getListByProductNum" parameterType="String"  resultType="Integer">
+   		select count(*) FROM product_comment
+   		where product_id = #{id} and audit_status = 1
+   </select>
+   
+    <select id="getListByUserNum" parameterType="String"  resultType="Integer">
+   		select count(*) FROM product_comment
+   		where user_id = #{id}
+   </select>
+ 
+  </mapper>

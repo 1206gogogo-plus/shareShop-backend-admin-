@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="whut.dao.ProInfoDao">
+  <resultMap id="BaseResultMap" type="whut.pojo.ProductInfo">
+     <id column="product_id" jdbcType="INTEGER" property="productId" />
+    <result column="product_name" jdbcType="VARCHAR" property="productName" />
+    <result column="brand_name" jdbcType="VARCHAR" property="brandName" />
+    <result column="spu" jdbcType="VARCHAR" property="spu" />
+    <result column="one_category_id" jdbcType="INTEGER" property="oneCategoryId" />
+    <result column="two_category_id" jdbcType="INTEGER" property="twoCategoryId" />
+    <result column="three_category_id" jdbcType="INTEGER" property="threeCategoryId" />
+    <result column="is_recommend" jdbcType="TINYINT" property="isRecommend" />
+    <result column="main_image" jdbcType="VARCHAR" property="mainImage" />
+    <result column="attribute_list" jdbcType="VARCHAR" property="attributeList" />
+    <result column="publish_status" jdbcType="TINYINT" property="publishStatus" />
+    <result column="audit_status" jdbcType="TINYINT" property="auditStatus" />
+    <result column="use_coupon" jdbcType="TINYINT" property="useCoupon" />
+    <result column="discount_rate" jdbcType="DECIMAL" property="discountRate" />
+    <result column="production_date" jdbcType="TIMESTAMP" property="productionDate" />
+    <result column="pro_description" jdbcType="VARCHAR" property="description" />
+    <result column="stock" jdbcType="INTEGER" property="stock" />
+    <result column="html" jdbcType="VARCHAR" property="html" />
+    <result column="input_time" jdbcType="TIMESTAMP" property="inputTime" />
+    <result column="modified_time" jdbcType="TIMESTAMP" property="modifiedTime" />
+    <result column="min_price" jdbcType="DECIMAL" property="minPrice"/>
+    <result column="max_price" jdbcType="DECIMAL"  property="maxPrice"/>
+    <result column="score" jdbcType="DOUBLE" property="score"/>
+    
+     <collection  property="productSpecs" javaType="list" ofType="whut.pojo.ProductSpecs">
+    	<id column="product_specs_id" property="productSpecsId" jdbcType="INTEGER" />
+	    <result column="name" property="name" jdbcType="VARCHAR" />
+	    <result column="product_code" property="productCode" jdbcType="VARCHAR" />
+	    <result column="specs" property="specs" jdbcType="VARCHAR" />
+	    <result column="specs_sort" property="specsSort" jdbcType="TINYINT" />
+	    <result column="pic_url" property="picUrl" jdbcType="VARCHAR" />
+	    <result column="average_cost" property="averageCost" jdbcType="DECIMAL" />
+	    <result column="original_price" property="originalPrice" jdbcType="DECIMAL" />
+	    <result column="price" property="price" jdbcType="DECIMAL" />
+	    <result column="description" property="description" jdbcType="VARCHAR" />
+	    <result column="product_stock" property="productStock" jdbcType="INTEGER" />
+	    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+	    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    </collection >
+    
+  </resultMap>
+  
+  <resultMap id="ForSearchResultMap" type="whut.pojo.ProductInfoForSearch">
+     <id column="product_id" jdbcType="INTEGER" property="productId" />
+    <result column="product_name" jdbcType="VARCHAR" property="productName" />
+    <result column="brand_name" jdbcType="VARCHAR" property="brandName" />
+    <result column="spu" jdbcType="VARCHAR" property="spu" />
+    <result column="one_category_id" jdbcType="INTEGER" property="oneCategoryId" />
+    <result column="two_category_id" jdbcType="INTEGER" property="twoCategoryId" />
+    <result column="three_category_id" jdbcType="INTEGER" property="threeCategoryId" />
+    <result column="is_recommend" jdbcType="TINYINT" property="isRecommend" />
+    <result column="main_image" jdbcType="VARCHAR" property="mainImage" />
+    <result column="attribute_list" jdbcType="VARCHAR" property="attributeList" />
+    <result column="publish_status" jdbcType="TINYINT" property="publishStatus" />
+    <result column="audit_status" jdbcType="TINYINT" property="auditStatus" />
+    <result column="use_coupon" jdbcType="TINYINT" property="useCoupon" />
+    <result column="discount_rate" jdbcType="INTEGER" property="discountRate" />
+    <result column="production_date" jdbcType="TIMESTAMP" property="productionDate" />
+    <result column="pro_description" jdbcType="VARCHAR" property="description" />
+    <result column="stock" jdbcType="INTEGER" property="stock" />
+    <result column="html" jdbcType="VARCHAR" property="html" />
+    <result column="input_time" jdbcType="TIMESTAMP" property="inputTime" />
+    <result column="modified_time" jdbcType="TIMESTAMP" property="modifiedTime" />
+    <result column="pscore" jdbcType="DOUBLE" property="pscore"/>
+    <result column="min_price" jdbcType="DOUBLE" property="minPrice"/>
+    <result column="max_price" jdbcType="DOUBLE"  property="maxPrice"/>
+    <result column="collect" jdbcType="INTEGER" property="collect"/>
+   	<result column="cart" jdbcType="INTEGER" property="cart"/>
+   	<result column="sales" jdbcType="INTEGER" property="sales"/>
+   </resultMap>
+   
+  	<sql id="proInfo">
+  		SELECT pi.product_id,pi.product_name,pi.brand_name,pi.spu,pi.one_category_id,pi.two_category_id,pi.three_category_id,
+  		pi.is_recommend,pi.main_image,pi.attribute_list,pi.publish_status,pi.audit_status,pi.use_coupon,
+  		pi.discount_rate,pi.production_date,pi.description pro_description,pi.stock,pi.html,pi.input_time,pi.modified_time, 
+  		ps.product_specs_id,ps.name,ps.product_code,ps.specs,ps.specs_sort,ps.pic_url,ps.average_cost,ps.original_price,
+  		ps.price,ps.description,ps.product_stock,ps.create_time,ps.update_time,psp.min_price,psp.max_price,pc.score  FROM product_info pi
+		LEFT JOIN product_specs ps on ps.product_id = pi.product_id
+		LEFT JOIN (SELECT product_id,min(price) min_price,max(price) max_price FROM product_specs GROUP BY product_id) psp on psp.product_id = pi.product_id
+		LEFT JOIN (SELECT product_id, AVG(grade) score FROM product_comment GROUP BY product_id) pc on pi.product_id = pc.product_id
+  	</sql>
+  	
+  	<sql id="page">
+  		and pi.product_id in (select temp.product_id from (select product_id from product_info LIMIT #{pageindex},#{pagesize}) temp)
+  	</sql>
+  	
+    <select id="getList" parameterType="hashmap" resultMap="BaseResultMap">
+        <include refid="proInfo"/>
+        where publish_status = 1 and audit_status = 1
+       <include refid="page"/>
+        ORDER BY product_id  
+    </select>
+    
+    <select id="getDetail" parameterType="String" resultMap="BaseResultMap">
+    	<include refid="proInfo"/>
+    	 where pi.product_id = #{id}
+    	 ORDER BY product_id
+    </select>
+    
+    <select id="getDetailByCode" parameterType="String" resultMap="BaseResultMap">
+    	<include refid="proInfo"/>
+    	 where spu = #{id}
+    	 ORDER BY product_id
+    </select>
+    
+     <select id="add" parameterType="ProductComment">
+    	INSERT INTO product_info
+    	(product_name,brand_name,spu,one_category_id,two_category_id,three_category_id,
+    	 is_recommend,main_image,attribute_list,publish_status,audit_status,use_coupon,discount_rate,
+    	production_date,description,stock,html,input_time)      
+        VALUES
+    	(#{productName},#{brandName},#{spu},#{oneCategoryId},#{twoCategoryId},#{threeCategoryId},
+    	#{isRecommend},#{mainImage},#{attributeList},#{publishStatus},#{auditStatus},
+    	#{useCoupon},#{discountRate},#{productionDate},#{description},#{stock},#{html},now())
+    </select>
+    
+    <select id="search" parameterType="hashmap" resultMap="BaseResultMap">
+    	<include refid="proInfo"/>
+    	where product_name LIKE CONCAT(CONCAT('%',#{productName}),'%')
+    	<include refid="page"/>
+    	ORDER BY product_id
+    </select>
+    
+    <select id="modify" parameterType="ProductInfo">
+    	UPDATE product_info SET 
+    	product_name = #{productName},brand_name = #{brandName},spu = #{spu},one_category_id = #{oneCategoryId},two_category_id = #{twoCategoryId},
+    	three_category_id = #{threeCategoryId},is_recommend = #{isRecommend},main_image = #{mainImage},attribute_list = #{attributeList},publish_status = #{publishStatus},
+    	audit_status = #{auditStatus},use_coupon = #{useCoupon},discount_rate = #{discountRate},
+    	production_date = #{productionDate},description = #{description},stock = #{stock},html = #{html},modified_time = now()    
+        WHERE product_id = #{productId}
+    </select>
+    
+    <select id="modifyAuditStatus" parameterType="hashmap">
+    	UPDATE `product_info` SET 
+    	audit_status = #{auditStatus},  modified_time = now()
+        WHERE product_id = #{productId}
+    </select>
+    
+    <select id="modifyShelfStatus" parameterType="hashmap">
+    	UPDATE `product_info` SET 
+    	publish_status = #{publishStatus}, modified_time = now()
+        WHERE product_id = #{productId}
+    </select>
+    
+    <select id="getListByCategory" parameterType="hashmap"  resultMap="BaseResultMap">
+    	<include refid="proInfo"/>
+    	where (one_category_id = #{oneCategoryId} or two_category_id = #{twoCategoryId} or three_category_id = #{threeCategoryId})
+    	and publish_status = 1 and audit_status = 1
+    	<include refid="page"/>
+    	ORDER BY product_id
+    </select>
+    
+    <select id="getIfcheckedList" parameterType="hashmap" resultMap="BaseResultMap">
+    	<include refid="proInfo"/>
+    	where  audit_status = #{auditStatus}
+    	<include refid="page"/>
+    	ORDER BY product_id
+    </select>
+    
+   <select id="getIfShelfList" parameterType="hashmap" resultMap="BaseResultMap">
+    	<include refid="proInfo"/>
+    	where  publish_status = #{publishStatus}
+    	<include refid="page"/>
+    	ORDER BY product_id
+    </select>
+    
+    <select id="getListByCondition" parameterType="hashmap" resultMap="BaseResultMap">
+    	<include refid="proInfo"/>
+    	where  1 = 1
+    	<if test="productName != null">
+      		and product_name = #{productName} 
+    	</if>
+    	<if test="productCode != null">
+      		and spu = #{productCode} 
+    	</if>
+    	<if test="oneCategoryId != null">
+      		and one_category_id = #{oneCategoryId} 
+    	</if>
+    	<if test="twoCategoryId != null">
+      		and two_category_id = #{twoCategoryId} 
+    	</if>
+    	<if test="threeCategoryId != null">
+      		and three_category_id = #{threeCategoryId} 
+    	</if>
+    	<if test="publishStatus != null">
+      		and publish_status = #{publishStatus}  
+    	</if>
+        <if test="auditStatus != null">
+      		and audit_status = #{auditStatus}  
+    	</if>
+    	<include refid="page"/>
+         ORDER BY product_id
+    </select>
+    
+    
+    <select id="getSolrDoucumentList" resultMap="ForSearchResultMap">
+    	SELECT pi.product_id,pi.product_name,pi.brand_name,pi.one_category_id,pi.two_category_id,pi.three_category_id,
+		pi.is_recommend,pi.main_image,pi.attribute_list,pi.publish_status,pi.audit_status,pi.audit_status,pi.use_coupon,pi.discount_rate,
+		pi.production_date,pi.description,pi.stock,pi.html,pi.input_time,pi.modified_time,pc.score,ps.min_price,ps.max_price,IFNULL(uc.collect,0) collect,
+		IFNULL(oc.cart,0) cart,IFNULL(od.sales,0) sales
+		FROM product_info pi
+		LEFT JOIN (SELECT product_id, AVG(grade) score FROM product_comment GROUP BY product_id) pc on pi.product_id = pc.product_id
+		LEFT JOIN (SELECT product_id,min(price) min_price,max(price) max_price FROM product_specs GROUP BY product_id) ps on pi.product_id = ps.product_id
+		LEFT JOIN (SELECT product_id,count(*) collect FROM user_collect GROUP BY product_id) uc on pi.product_id = uc.product_id
+		LEFT JOIN (SELECT product_id,count(*) cart FROM order_cart GROUP BY product_id) oc on pi.product_id = oc.product_id
+		LEFT JOIN (select od.product_id,sum(od.product_quantity) sales from order_detail od
+		LEFT JOIN order_master om ON od.order_id = om.order_id 
+		where (od.status = 5 or od.status = 9) and DATE_SUB(CURDATE(), INTERVAL 1 MONTH) <![CDATA[ <= ]]> date(om.pay_time)
+		GROUP BY od.product_id) od on pi.product_id = od.product_id
+		ORDER BY pi.product_id 
+	</select>
+	
+	<select id="getListNum" resultType="Integer">
+		select count(*) from product_info
+	</select>
+	
+	<select id="searchNum" parameterType="String" resultType="Integer">
+		select count(*) from product_info where product_name LIKE CONCAT(CONCAT('%',#{name}),'%') 
+	</select>
+	
+	<select id="getListByCategoryNum" parameterType="String" resultType="Integer">
+		select count(*) from product_info
+		where (one_category_id = #{id} or two_category_id = #{id} or three_category_id = #{id})
+	</select>
+	
+    <select id="getIfcheckedListNum" parameterType="String" resultType="Integer">
+		select count(*) from product_info where audit_status = #{status} 
+	</select>
+	
+	<select id="getIfShelfListNum" parameterType="String" resultType="Integer">
+		select count(*) from product_info where publish_status = #{status} 
+	</select>
+	
+	<select id="getListByConditionNum" parameterType="hashmap" resultType="Integer">
+		select count(*) from product_info 
+		where  1 = 1
+    	<if test="productName != null">
+      		and product_name = #{productName} 
+    	</if>
+    	<if test="productCode != null">
+      		and spu = #{productCode} 
+    	</if>
+    	<if test="oneCategoryId != null">
+      		and one_category_id = #{oneCategoryId} 
+    	</if>
+    	<if test="twoCategoryId != null">
+      		and two_category_id = #{twoCategoryId} 
+    	</if>
+    	<if test="threeCategoryId != null">
+      		and three_category_id = #{threeCategoryId} 
+    	</if>
+    	<if test="publishStatus != null">
+      		and publish_status = #{publishStatus}  
+    	</if>
+        <if test="auditStatus != null">
+      		and audit_status = #{auditStatus}  
+    	</if> 
+	</select>
+    
+</mapper>
